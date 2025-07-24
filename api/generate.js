@@ -14,7 +14,7 @@ const getUltraObfuscationConfig = () => {
     compact: true,
     renameVariables: true,
     renameGlobals: true,
-    identifierNamesGenerator: 'custom',
+    identifierNamesGenerator: 'dictionary', // ✅ valid value
     identifiersDictionary: Array.from({ length: 100 }, () => generateUltraName()),
     stringCompression: true,
     stringArray: true,
@@ -26,7 +26,7 @@ const getUltraObfuscationConfig = () => {
     selfDefending: true,
     disableConsoleOutput: true,
     debugProtection: true,
-    debugProtectionInterval: true,
+    debugProtectionInterval: 4000, // ✅ angka > 0
     stringArrayEncoding: ['rc4'],
     stringArrayThreshold: 1,
     sourceMap: false
