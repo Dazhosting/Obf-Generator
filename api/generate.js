@@ -38,15 +38,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Only POST method allowed' });
   }
 
-  let body = '';
-
-  for await (const chunk of req) {
-    body += chunk;
-  }
-
   try {
-    const data = JSON.parse(body);
-    const { code } = data;
+    const { code } = req.body;
 
     if (!code || typeof code !== 'string') {
       return res.status(400).json({ error: 'Invalid or missing "code"' });
@@ -55,6 +48,7 @@ export default async function handler(req, res) {
     const result = obfuscate(code, getUltraObfuscationConfig()).getObfuscatedCode();
     return res.status(200).json({ obfuscated: result });
   } catch (err) {
+    console.error('❌ Obfuscation error:', err);
     return res.status(500).json({ error: 'Obfuscation failed', detail: err.message });
   }
 }
