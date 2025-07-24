@@ -1,7 +1,7 @@
-module.exports = {
+export default {
   api: {
     bodyParser: {
-      sizeLimit: '1mb' // optional, untuk batas besar input
+      sizeLimit: '1mb' // bisa disesuaikan
     }
   }
 };
