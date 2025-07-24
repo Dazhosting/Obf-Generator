@@ -1,4 +1,5 @@
-import { obfuscate } from 'javascript-obfuscator';
+import JavaScriptObfuscator from 'javascript-obfuscator';
+const { obfuscate } = JavaScriptObfuscator;
 
 const getUltraObfuscationConfig = () => {
   const generateUltraName = () => {
@@ -37,13 +38,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Only POST method allowed' });
   }
 
-  const { code } = await req.json();
+  let body = '';
 
-  if (!code || typeof code !== 'string') {
-    return res.status(400).json({ error: 'Invalid or missing "code"' });
+  for await (const chunk of req) {
+    body += chunk;
   }
 
   try {
+    const data = JSON.parse(body);
+    const { code } = data;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ error: 'Invalid or missing "code"' });
+    }
+
     const result = obfuscate(code, getUltraObfuscationConfig()).getObfuscatedCode();
     return res.status(200).json({ obfuscated: result });
   } catch (err) {
