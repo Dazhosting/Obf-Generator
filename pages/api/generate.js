@@ -1,4 +1,5 @@
-import { obfuscate } from 'javascript-obfuscator';
+import JavaScriptObfuscator from 'javascript-obfuscator';
+const { obfuscate } = JavaScriptObfuscator;
 
 const getUltraObfuscationConfig = () => {
   const generateUltraName = () => {
