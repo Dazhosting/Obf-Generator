@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
 
 export default function Home() {
   const [code, setCode] = useState('');
@@ -6,6 +7,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    // Prevent zoom on mobile
+    const handleGestureStart = (e) => e.preventDefault();
+    document.addEventListener('gesturestart', handleGestureStart);
+    return () => {
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
+  }, []);
 
   const handleObfuscate = async () => {
     setLoading(true);
@@ -16,12 +26,9 @@ export default function Home() {
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code })
       });
-
       const data = await res.json();
 
       if (res.ok) {
@@ -29,8 +36,8 @@ export default function Home() {
       } else {
         setError(data.error || 'Obfuscation failed');
       }
-    } catch (err) {
-      setError('Request failed');
+    } catch {
+      setError('❌ Request failed');
     }
 
     setLoading(false);
@@ -53,93 +60,137 @@ export default function Home() {
     setCopied(false);
   };
 
+  const handleDownload = () => {
+    const blob = new Blob([obfuscated], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'obfuscated.js';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div style={{ maxWidth: 900, margin: 'auto', padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>
-      <h1 style={{ textAlign: 'center', color: '#333' }}>🛡️ JavaScript Obfuscator</h1>
+    <>
+      <Head>
+        <title>JS Obfuscator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </Head>
 
-      <textarea
-        rows={10}
-        placeholder="Tulis kode JavaScript di sini..."
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        style={{
-          width: '100%',
-          padding: 12,
-          border: '1px solid #ccc',
-          borderRadius: 8,
-          fontFamily: 'monospace',
-          fontSize: 14,
-          background: '#f9f9f9'
-        }}
-      />
+      <div style={{
+        maxWidth: 900,
+        margin: 'auto',
+        padding: 20,
+        fontFamily: 'Segoe UI, sans-serif',
+        backgroundColor: '#1e1e2f',
+        minHeight: '100vh',
+        color: '#ffffffcc'
+      }}>
+        <h1 style={{ textAlign: 'center', color: '#4fc3f7' }}>🛡️ JavaScript Obfuscator</h1>
 
-      <div style={{ marginTop: 10, display: 'flex', gap: 10 }}>
-        <button
-          onClick={handleObfuscate}
-          disabled={loading || !code}
+        <textarea
+          rows={10}
+          placeholder="Tulis kode JavaScript di sini..."
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
           style={{
-            padding: '10px 20px',
-            backgroundColor: '#0070f3',
+            width: '100%',
+            padding: 12,
+            border: '1px solid #3b3b4f',
+            borderRadius: 8,
+            fontFamily: 'monospace',
+            fontSize: 14,
+            background: '#2c2c3c',
             color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer'
+            resize: 'vertical'
           }}
-        >
-          {loading ? 'Memproses...' : 'Obfuscate'}
-        </button>
+        />
 
-        <button
-          onClick={handleClear}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#e53e3e',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer'
-          }}
-        >
-          Clear
-        </button>
-      </div>
-
-      {error && <p style={{ color: 'red', marginTop: 10 }}>❌ {error}</p>}
-
-      {obfuscated && (
-        <div style={{ marginTop: 30 }}>
-          <h2>✅ Hasil Obfuscation:</h2>
-          <textarea
-            rows={10}
-            readOnly
-            value={obfuscated}
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #ccc',
-              borderRadius: 8,
-              fontFamily: 'monospace',
-              fontSize: 14,
-              background: '#eef'
-            }}
-          />
+        <div style={{ marginTop: 10, display: 'flex', gap: 10 }}>
           <button
-            onClick={handleCopy}
+            onClick={handleObfuscate}
+            disabled={loading || !code}
             style={{
-              marginTop: 10,
-              padding: '8px 16px',
-              backgroundColor: copied ? '#22c55e' : '#4a90e2',
+              padding: '10px 20px',
+              backgroundColor: '#4fc3f7',
+              color: '#000',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer'
+            }}
+          >
+            {loading ? 'Memproses...' : 'Obfuscate'}
+          </button>
+
+          <button
+            onClick={handleClear}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#f87171',
               color: '#fff',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer'
             }}
           >
-            {copied ? '✔️ Disalin!' : '📋 Salin Hasil'}
+            Clear
           </button>
         </div>
-      )}
-    </div>
+
+        {error && <p style={{ color: '#f87171', marginTop: 10 }}>❌ {error}</p>}
+
+        {obfuscated && (
+          <div style={{ marginTop: 30 }}>
+            <h2 style={{ color: '#4fc3f7' }}>✅ Hasil Obfuscation:</h2>
+            <textarea
+              rows={10}
+              readOnly
+              value={obfuscated}
+              style={{
+                width: '100%',
+                padding: 12,
+                border: '1px solid #3b3b4f',
+                borderRadius: 8,
+                fontFamily: 'monospace',
+                fontSize: 14,
+                background: '#2c2c3c',
+                color: '#fff'
+              }}
+            />
+
+            <div style={{ marginTop: 10, display: 'flex', gap: 10 }}>
+              <button
+                onClick={handleCopy}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: copied ? '#22c55e' : '#4fc3f7',
+                  color: copied ? '#fff' : '#000',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer'
+                }}
+              >
+                {copied ? '✔️ Disalin!' : '📋 Salin'}
+              </button>
+
+              <button
+                onClick={handleDownload}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#38bdf8',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer'
+                }}
+              >
+                ⬇️ Download .js
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
-  }
-          
+      }
+    
